@@ -1,0 +1,358 @@
+/**
+*   user-setting
+*/
+
+:root {
+    --color-background:#c0c0c0;
+    
+    --color-main:#BF4444;
+    --color-main-reverse:#cccccc;
+    --color-sub:#0E2630;
+    --color-sub-reverse:#ffffff;
+    
+    --color-info:#0F80F8;
+    --color-error:#F90ECF;
+    --color-shadow:#333333bb;
+    
+    --color-title:var(--color-main);
+    --background-color-title:#2C97C6;
+    
+    --border-style:solid;
+    --border-width:thin;
+    
+    --width-contents:320px;
+    --min-height-contents:320px;
+    --font-size:16px;
+}
+
+
+/**
+*   foundation-reset
+*/
+
+* {box-sizing:border-box;}
+
+body {margin:0;}
+
+h1,h2,h3,h4,h5,h6 {margin:0;}
+
+h1 {font-size:2.0rem;}
+h2 {font-size:1.8rem;}
+h3 {font-size:1.6rem;}
+h4 {font-size:1.4rem;}
+h5 {font-size:1.2rem;}
+h6 {font-size:1.0rem;}
+
+ul, ol {
+    list-style:none;
+    margin:0;
+    padding:0;
+}
+
+button, input, select, textarea {
+    font-family:inherit;
+    font-size:inherit;
+}
+
+table {border-collapse:collapse;}
+
+
+/**
+*   mainmast
+*/
+
+html {
+    font-size:var(--font-size);
+}
+
+body {
+    color:var(--color-main);
+    background-color:var(--color-background);
+}
+
+#main {
+    display:flex;
+    flex-wrap:wrap;
+}
+
+article {
+    width:var(--width-contents);
+    min-height:var(--min-height-contents);
+    padding:2px;
+}
+
+nav ul, nav ol {
+    display:flex;
+}
+
+
+
+/**
+*   object-common
+*/
+
+h2 {
+    white-space:nowrap;
+}
+
+button, input, select, textarea {
+    color:var(--color-main);
+    background-color:var(--color-main-reverse);
+}
+
+:invalid {
+    border-color:var(--color-error);
+}
+
+.table-main {
+    border-color:var(--color-sub);
+    border-style:var(--border-style);
+    border-width:var(--border-width);
+    background-color:var(--color-main-reverse);
+    table-layout:fixed;
+    overflow:hidden;
+    width:100%;
+}
+
+.table-main tr,
+    .table-main th,
+    .table-main td {
+    border-color:var(--color-sub);
+    border-style:var(--border-style);
+    border-width:var(--border-width);
+    overflow:hidden;
+}
+
+.table-position {
+    border:0;
+    table-layout:fixed;
+    overflow:hidden;
+    width:100%;
+}
+
+.modal {
+    left:0;
+    top:0;
+    height:100%;
+    width:100%;
+    overflow:auto;
+    z-index:1;
+    background-color:var(--color-shadow);
+}
+
+.modal > * {
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+}
+
+
+/**
+*   utility
+*/
+
+.display-none {
+    display:none;
+}
+
+.position-fixed {
+    position:fixed;
+}
+
+.background-color-info {
+    background-color:var(--color-info);
+}
+
+.background-color-error {
+    background-color:var(--color-error);
+}
+
+
+/**
+*   object
+*/
+
+html {
+  scroll-padding-top:4rem;
+}
+
+/*header*/
+header {
+    position:sticky;
+    top:0;
+}
+
+h1 {
+    text-align:center;
+    color:var(--color-title);
+    background-color:var(--background-color-title);
+    padding-top:0.1rem;
+    padding-bottom:0.1rem;
+    max-height:2.2rem;
+}
+
+
+/*header nav*/
+header > nav {
+    background-color:var(--color-main);
+}
+
+header li {
+    margin-left:2px;
+    margin-top:2px;
+    margin-right:0.5rem;
+}
+
+header a:link, a:visited {
+    color:var(--color-main-reverse);
+    text-decoration:none;
+}
+
+header nav button {
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:inherit;
+    color:var(--color-main-reverse);
+    cursor: pointer;
+}
+
+
+/*job_input_view*/
+#job_input_view li:first-child{
+    width:100%;
+}
+
+#job_input_view li:last-child{
+    flex-shrink:0;
+}
+
+input[name="job_name"] {
+    width:inherit;
+}
+
+button[name="job_name_button"] {
+    width:4rem;
+}
+
+
+/*timecard_view*/
+#timecard_table td:nth-child(3) {
+    text-align:center;
+}
+
+#timecard_table td:last-child {
+    text-align:right;
+}
+
+#timecard_table th:nth-child(3)
+    ,#timecard_table th:last-child {
+    width:5rem;
+}
+
+
+
+/*total_data_view*/
+#total_data_table td:last-child {
+    text-align:right;
+}
+
+#total_data_table th:last-child {
+    width:5rem;
+}
+
+
+
+/*auto_date_table*/
+#auto_date_table th:nth-child(3)
+    ,#auto_date_table th:last-child {
+    width:5rem;
+}
+
+#auto_date_table td:nth-child(3) {
+    text-align:center;
+}
+
+#auto_date_table td:last-child {
+    text-align:center;
+}
+
+input[name="config_expiration"] {
+    width:3rem;
+}
+
+
+/*help_view*/
+
+#help_view ol {
+    counter-reset:count 0;
+    padding:1em;
+}
+
+#help_view ol li:before {
+  content:counter(count) ". ";
+  counter-increment:count 1;
+}
+
+#help_view li {
+    font-size:max(0.8rem, 10px);
+    padding-bottom:1em;
+}
+
+#help_view aside li {
+    font-size:max(0.6rem, 10px);
+}
+
+#help_view aside ol li:before {
+  content:"補足" counter(count) ". ";
+  counter-increment:count 1;
+}
+
+#help_view aside ol {
+    counter-reset:count 0;
+}
+
+
+/*csv_view*/
+#csv_view > div {
+    color:var(--color-sub);
+    background-color:var(--color-sub-reverse);
+    width:50%;
+}
+
+#csv_view > div > div {
+    position:static;
+    text-align:center;
+    width:100%;
+}
+
+#csv_view textarea {
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+}
+
+#csv_view textarea
+    ,#csv_view button {
+    color:inherit;
+    background-color:inherit;
+}
+
+
+/*message_view*/
+#message_view > div {
+    padding-top:1rem;
+    padding-bottom:1rem;
+    padding-left:4rem;
+    padding-right:4rem;
+    color:#000000;
+}
+
+
+/*media query*/
+@media screen and (max-width:768px) {
+    .table-main td {
+        height:4rem;
+    }
+}
