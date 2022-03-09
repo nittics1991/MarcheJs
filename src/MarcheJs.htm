@@ -384,7 +384,7 @@ input[name="config_expiration"] {
             <li><a href="#timecard_view" title="タイムカードへ移動">タイムカード</a></li>
             <li><a href="#total_data_view" title="集計へ移動">集計</a></li>
             <li><a href="#config_view" title="設定へ移動">設定</a></li>
-            <li><button name="csv_button" title="CVSデータ表示">CSV出力</button></li>
+            <li><button name="csv_button" title="CVSデータ表示">データ入出力</button></li>
             <li><a href="#help_view" title="使い方へ移動">使い方</a></li>
         </ul>
     </nav>
@@ -548,7 +548,9 @@ input[name="config_expiration"] {
             <li>データは、ブラウザのローカルストレージに保存する</li>
             <li>データは一定期間後、あるいは設定のデータ保持日数を経過すると削除する</li>
             <li>タイムカードあるいは集計のカレンダーを変更する事で、過去のデータを表示する事が出来る</li>
-            <li>CSV出力をクリックすると、全データをCSV形式で表示する事が出来る</li>
+            <li>データ入出力をクリックすると、全データをCSV形式で表示する事が出来る</li>
+            <li>データ入出力のエクスポートボタンで全データをダウンロード出来る</li>
+            <li>データ入出力へダウンロードしたファイルをドロップすると全データを上書きインポート出来る</li>
         </ol>
         
         <h3>自動JOB</h3>
@@ -579,6 +581,7 @@ input[name="config_expiration"] {
             <textarea name="csv_data"></textarea>
         </div>
         <div>
+            <button name="export_button">エクスポート</button>
             <button name="csv_close_button">閉じる</button>
         </div>
     </div>
@@ -1169,6 +1172,13 @@ class MarcheRepository
     _DATA_NAMESPACE = 'MarcheJs';
     
     /**
+    *   _STORAGE_DATA
+    *
+    *   @var string
+    */
+    _STORAGE_DATA = '_storage_data';
+    
+    /**
     *   _CONFIG_NAMESPACE
     *
     *   @var string
@@ -1228,7 +1238,7 @@ class MarcheRepository
     dataCollection() {
         const item = this._storage.getItem(this._DATA_NAMESPACE);
         const data_collection = item? JSON.parse(item):{};
-        const storage_data = data_collection['_storage_data'] || {};
+        const storage_data = data_collection[this._STORAGE_DATA] || {};
         return new MarcheDataCollection(storage_data);
     }
     
@@ -1255,7 +1265,6 @@ class MarcheRepository
             this._DATA_NAMESPACE,
             JSON.stringify(dataCollection)
         );
-        
         
         this._eventDispatcher.dispatchEvent(
             'MarcheRepository_setJobItem_after',
@@ -1385,6 +1394,38 @@ class MarcheRepository
         });
     }
     
+    /**
+    *   import
+    *
+    *   @param object object
+    *   @return this
+    */
+    import(object) {
+        const event = {target:this, data:object};
+        
+        this._eventDispatcher.dispatchEvent(
+            'MarcheRepository_importJson_before',
+            event
+        );
+        
+        let data = {};
+        data[this._STORAGE_DATA] = object;
+        
+        this._storage.setItem(
+            this._DATA_NAMESPACE,
+            JSON.stringify(data)
+        );
+        
+        this._eventDispatcher.dispatchEvent(
+            'MarcheRepository_importJson_after',
+            event
+        );
+        
+        this._dispatchStorageEvent(event);
+        
+        return this;
+    }
+    
     ////////////////////////
     
     /**
@@ -1395,7 +1436,7 @@ class MarcheRepository
     getConfigs() {
         const item = this._storage.getItem(this._CONFIG_NAMESPACE);
         const data_collection = item? JSON.parse(item):{};
-        const storage_data = data_collection['_storage_data'] || {};
+        const storage_data = data_collection[this._STORAGE_DATA] || {};
         return new MarcheConfig(storage_data);
     }
     
@@ -2243,6 +2284,26 @@ class MessageView
                 );
             }
         );
+         
+        this._eventDispatcher.addEventListener(
+            'CsvView_drop_error',
+            (event) => {
+                this.error(
+                    `インポート失敗しました`,
+                    _MESSGAGE_DELAY_ERROR
+                );
+            }
+        );
+         
+        this._eventDispatcher.addEventListener(
+            'CsvView_drop_onload',
+            (event) => {
+                this.info(
+                    `インポート完了しました`,
+                    _MESSGAGE_DELAY_INFO
+                );
+            }
+        );
     }
     
     /**
@@ -2393,13 +2454,23 @@ class CsvView
     */
     _eventDispatcher;
 
+
+    /**
+    *   _repository
+    *
+    *   @var MarcheRepository
+    */
+    _repository;
+    
     /**
     *   constructor
     *
     *   @param EventDispatcher eventDispatcher
+    *   @param MarcheRepository repository
     */
-    constructor(eventDispatcher) {
+    constructor(eventDispatcher, repository) {
         this._eventDispatcher = eventDispatcher;
+        this._repository = repository;
         this._initEvent();
     }
     
@@ -2416,6 +2487,86 @@ class CsvView
                     .classList.add('display-none');
                 
                 document.body.classList.remove('position-fixed');
+            });
+        
+        document.querySelector('#csv_view button[name="export_button"]')
+            .addEventListener('click', (event) =>{
+                event.preventDefault();
+                
+                const blob = new Blob(
+                    [JSON.stringify(this._repository.dataCollection().all())], 
+                    {type: 'text/plain'}
+                );
+                
+                const link = document.createElement('a');
+                link.download = 'data.json';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+        
+        let dropbox = document.getElementById("csv_view");
+    
+        document.querySelector('#csv_view')
+            .addEventListener('dragenter', (event) =>{
+                event.stopPropagation();
+                event.preventDefault();
+            });
+        
+        document.querySelector('#csv_view')
+            .addEventListener('dragover', (event) =>{
+                event.stopPropagation();
+                event.preventDefault();
+            });
+        
+        document.querySelector('#csv_view')
+            .addEventListener('drop', (event) =>{
+                event.stopPropagation();
+                event.preventDefault();
+                
+                const dataTransfer = event.dataTransfer;
+                const fileList = dataTransfer === null?
+                    []:dataTransfer.files;
+                
+                if (fileList.length != 1) {
+                    this._eventDispatcher.dispatchEvent(
+                        'CsvView_drop_error',
+                        {
+                            target:this,
+                            event:event,
+                        }
+                    );
+                    return;
+                }
+                
+                const fileReader = new FileReader();
+                
+                fileReader.onerror = (event) =>{
+                    fileReader.abort();
+                    this._eventDispatcher.dispatchEvent(
+                        'CsvView_drop_error',
+                        {
+                            target:this,
+                            event:event,
+                        }
+                    );
+                };
+                
+                 fileReader.onload = (event) =>{
+                    this._repository.import(
+                        JSON.parse(event.target.result)
+                    );
+                    
+                    this._eventDispatcher.dispatchEvent(
+                        'CsvView_drop_onload',
+                        {
+                            target:this,
+                            event:event,
+                        }
+                    );
+                };
+                
+                fileReader.readAsText(fileList[0]);
             });
     }
 }
@@ -2439,7 +2590,7 @@ try {
     
     const titleHeaderView = new TitleHeaderView(eventDispatcher, repository);
     
-    const csvView = new CsvView(eventDispatcher);
+    const csvView = new CsvView(eventDispatcher, repository);
     
     configView.render();
     jobInputView.render();
